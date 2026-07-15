@@ -72,13 +72,37 @@ type StatsCollector struct {
 	wgClient *wgctrl.Client
 }
 
+// getConfigPath returns the path to the configuration file
+// Priority: environment variable > default value
+func getConfigPath() string {
+	// Checking the WIREGUARD_STATS_CONFIG environment variable
+	if configPath := os.Getenv("WIREGUARD_STATS_CONFIG"); configPath != "" {
+		log.Printf("Using config from environment variable: %s", configPath)
+		return configPath
+	}
+
+	// You can also check command-line arguments
+	if len(os.Args) > 1 {
+		log.Printf("Using config from command line argument: %s", os.Args[1])
+		return os.Args[1]
+	}
+
+	// Default value
+	defaultPath := "config.yaml"
+	log.Printf("Using default config path: %s", defaultPath)
+	return defaultPath
+}
+
 func main() {
 	log.Println("Starting WireGuard Statistics Collector...")
 
+	// Get the path to the configuration file
+	configPath := getConfigPath()
+
 	// Load configuration
-	config, err := loadConfig("config.yaml")
+	config, err := loadConfig(configPath)
 	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
+		log.Fatalf("Failed to load config from %s: %v", configPath, err)
 	}
 
 	// Initialize database
@@ -147,12 +171,22 @@ func main() {
 func loadConfig(filename string) (*Config, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, fmt.Errorf("error reading config file: %w", err)
+		return nil, fmt.Errorf("error reading config file %s: %w", filename, err)
 	}
 
 	var config Config
 	if err := yaml.Unmarshal(data, &config); err != nil {
-		return nil, fmt.Errorf("error parsing config: %w", err)
+		return nil, fmt.Errorf("error parsing config file %s: %w", filename, err)
+	}
+
+	// Basic validation
+	if config.Database.Driver == "" {
+		return nil, fmt.Errorf("database driver not specified in config")
+	}
+
+	if config.Collection.Interval < 10 {
+		log.Printf("Warning: Collection interval %d is too low, setting to 60 seconds", config.Collection.Interval)
+		config.Collection.Interval = 60
 	}
 
 	return &config, nil
