@@ -19,3 +19,4 @@ wireguard:
 collection:
   interval: 60            # seconds
   enable_daily_aggregation: true
+  verbose: false   # false = only errors, true = full log

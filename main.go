@@ -47,6 +47,7 @@ type Config struct {
 	Collection struct {
 		Interval               int  `yaml:"interval"`
 		EnableDailyAggregation bool `yaml:"enable_daily_aggregation"`
+		Verbose                bool `yaml:"verbose"`
 	} `yaml:"collection"`
 }
 
@@ -516,15 +517,17 @@ func (sc *StatsCollector) collectAndStore() {
 		log.Printf("Error storing stats: %v", err)
 	}
 
-	// Print summary
-	for _, stat := range stats {
-		log.Printf("[%s] Peer: %s, RX: %d bytes, TX: %d bytes, Connected: %v",
-			stat.InterfaceName,
-			stat.PublicKey[:16]+"...",
-			stat.RxBytes,
-			stat.TxBytes,
-			stat.IsConnected,
-		)
+	// Подробный лог только если включён verbose
+	if sc.config.Collection.Verbose {
+		for _, stat := range stats {
+			log.Printf("[%s] Peer: %s, RX: %d bytes, TX: %d bytes, Connected: %v",
+				stat.InterfaceName,
+				stat.PublicKey[:16]+"...",
+				stat.RxBytes,
+				stat.TxBytes,
+				stat.IsConnected,
+			)
+		}
 	}
 }
 
