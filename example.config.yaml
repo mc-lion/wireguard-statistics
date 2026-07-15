@@ -1,0 +1,21 @@
+database:
+  driver: "mysql"
+  host: "mysql_host"
+  port: 3306
+  user: "mysql_user"
+  password: "mysql_password"
+  name: "mysql_database"
+  tls:
+    enabled: true
+    ca_cert: "ca.pem"       # CA certificate
+    client_cert: "client-cert.pem" # Client certificate
+    client_key: "client-key.pem"   # Client private key
+    server_name: "mysql-server"                     # Optional: verify server name
+    insecure_skip_verify: false                     # Set true only for testing
+
+wireguard:
+  interfaces: []          # empty = auto-detect all interfaces
+
+collection:
+  interval: 60            # seconds
+  enable_daily_aggregation: true
